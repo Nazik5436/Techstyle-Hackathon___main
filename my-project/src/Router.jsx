@@ -1,0 +1,23 @@
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+
+import Dashboard from './pages/Dashboard';
+import Projects from './pages/Projects';
+import NewProject from './pages/NewProject'; 
+import Processing from './pages/Processing';
+import Workspace from './pages/Workspace';
+
+export default function AppRouter() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/projects" element={<Projects />} />
+        <Route path="/projects/new" element={<NewProject />} />
+        <Route path="/projects/:id/processing" element={<Processing />} />
+        <Route path="/projects/:id/workspace" element={<Workspace />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}

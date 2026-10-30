@@ -1,0 +1,20 @@
+// Імпортуємо дизайн-токени
+@use './assets/tokens'; // SCSS автоматично знайде файл _tokens.scss
+
+// Застосовуємо глобальні стилі
+body {
+  font-family: 'Geist', sans-serif;
+  
+  /* Якщо в _tokens.scss є змінні для кольорів, їх можна одразу використати тут. Наприклад: */
+  // background-color: var(--background-primary);
+  // color: var(--text-primary);
+  
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+// Глобальне застосування моноширинного шрифту для коду
+code, pre {
+  font-family: 'Geist Mono', monospace;
+}
