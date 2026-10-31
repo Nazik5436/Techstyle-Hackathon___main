@@ -16,7 +16,9 @@ export default function AppRouter() {
         <Route path="/projects" element={<Projects />} />
         <Route path="/projects/new" element={<NewProject />} />
         <Route path="/projects/:id/processing" element={<Processing />} />
-        <Route path="/projects/:id/workspace" element={<Workspace />} />
+        
+        {/* Виправлений шлях до Workspace */}
+        <Route path="/projects/:id" element={<Workspace />} />
       </Routes>
     </BrowserRouter>
   );
