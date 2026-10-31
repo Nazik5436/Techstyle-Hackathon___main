@@ -6,6 +6,7 @@ import Projects from './pages/Projects';
 import NewProject from './pages/NewProject'; 
 import Processing from './pages/Processing';
 import Workspace from './pages/Workspace';
+import Settings from './pages/Settings';
 
 export default function AppRouter() {
   return (
@@ -19,6 +20,9 @@ export default function AppRouter() {
         
         {/* Виправлений шлях до Workspace */}
         <Route path="/projects/:id" element={<Workspace />} />
+
+        <Route path="/settings" element={<Navigate to="/settings/general" replace />} />
+        <Route path="/settings/:tab" element={<Settings />} />
       </Routes>
     </BrowserRouter>
   );

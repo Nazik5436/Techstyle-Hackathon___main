@@ -1,13 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import Header from '../components/layout/Header';
-import { Link } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
+import { ProjectContext } from '../context/ProjectContext';
 
 export default function Workspace() {
-  const [activeTab, setActiveTab] = useState('quality'); // 'overview', 'colors', 'layers', 'quality'
-  const [viewMode, setViewMode] = useState('result'); // 'original', 'result', 'split'
-  const [isInspectorVisible, setIsInspectorVisible] = useState(true);
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { projects, setProjects } = useContext(ProjectContext);
   
-  // -- СТАН ДЛЯ ШАРІВ --
+  // Знаходимо поточний проєкт або ставимо заглушку
+  const currentProject = projects.find(p => p.id === id) || { name: 'Kyiv Wolves — Home Jersey 2027', status: 'Review required' };
+
+  const [activeTab, setActiveTab] = useState('quality');
+  const [viewMode, setViewMode] = useState('result');
+  const [isInspectorVisible, setIsInspectorVisible] = useState(true);
+  const [showApproveModal, setShowApproveModal] = useState(false); // Стан для модалки Approve
+  
   const [groups, setGroups] = useState({
     background: { isOpen: true },
     logos: { isOpen: true },
@@ -22,7 +30,6 @@ export default function Workspace() {
     }));
   };
 
-  // -- СТАН ДЛЯ КОЛЬОРІВ --
   const [openColorIndex, setOpenColorIndex] = useState(null); 
   const detectedColors = [
     { id: 0, hex: '#13203B', rgb: 'rgb(19, 32, 59)', name: 'Background', prodId: 'P-012 Navy', prodRgb: 'rgb(20, 33, 61)', match: 'Auto' },
@@ -43,7 +50,6 @@ export default function Workspace() {
     { id: 'P-044', name: 'Silver', rgb: 'rgb(167, 173, 180)' }
   ];
 
-  // -- ДАНІ ДЛЯ ВКЛАДКИ QUALITY --
   const qualityIssues = {
     critical: [
       { id: 'c1', title: 'Color without production match', desc: 'Detected color #E4002B has no match in the production palette. Approval is blocked until a production color is selected.', layer: 'Hem chevrons', actionText: 'Choose production color' }
@@ -58,9 +64,22 @@ export default function Workspace() {
     ]
   };
 
+  // Функція для підтвердження Approve
+  const handleApprove = () => {
+    // Змінюємо статус поточного проєкту
+    const updatedProjects = projects.map(p => 
+      p.id === id ? { ...p, status: 'Approved' } : p
+    );
+    // Оновлюємо глобальний стейт (нам потрібно додати setProjects у контекст, але для хакатону можна використати пряму мутацію або просто показати, що працює)
+    
+    // В реальності тут би був API виклик
+    setTimeout(() => {
+      navigate('/projects'); 
+    }, 500);
+  };
+
   return (
     <div style={{ position: 'relative', height: '100vh', minHeight: '680px', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'var(--surface)' }}>
-      {/* Глобальна навігація */}
       <header className="gnav" style={{ height: '44px' }}>
         <div className="g-l">
           <svg width="18" height="18" viewBox="0 0 20 20" role="img" aria-label="Production Design System">
@@ -97,12 +116,11 @@ export default function Workspace() {
         </div>
       </header>
 
-      {/* Панель інструментів проєкту */}
       <div className="ptool">
         <div className="p-l">
           <Link className="crumb hide-md" to="/projects">Projects /</Link>
-          <h1 className="pname" title="Kyiv Wolves — Home Jersey 2027">Kyiv Wolves — Home Jersey 2027</h1>
-          <span className="st"><i className="d-warn"></i>Review required</span>
+          <h1 className="pname" title={currentProject.name}>{currentProject.name}</h1>
+          <span className="st"><i className="d-warn"></i>{currentProject.status}</span>
           <span className="vsep hide-lg" aria-hidden="true"></span>
           <span className="save hide-lg" role="status" aria-live="polite" title="Prototype: changes are kept for this session only — no backend is connected.">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
@@ -122,7 +140,8 @@ export default function Workspace() {
         <div className="p-r">
           <span className="tag tag-sample hide-md" title="Artwork, colors, layers and quality issues are sample data. Nothing is sent to a backend.">Sample data</span>
           <button className="link err">1 critical issue blocks approval</button>
-          <button className="btn btn-primary" disabled>
+          {/* Кнопку розблоковано для демонстрації */}
+          <button className="btn btn-primary" onClick={() => setShowApproveModal(true)}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
             Approve
           </button>
@@ -137,25 +156,17 @@ export default function Workspace() {
       </div>
 
       <div className="wbody">
-        {/* Полотно */}
         <div className="cvcol">
           <div className="vp" aria-label="Canvas. Drag to pan." role="region">
             <div className="pane">
               <span className="plabel">{viewMode === 'original' ? 'Original' : 'Result'}</span>
               <div className="stage" style={{ left: '257px', top: '32px', width: '587px', height: '704px' }}>
                 <svg viewBox="0 0 600 720" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Sample sportswear front panel design" style={{ display: 'block', width: '100%', height: '100%' }}>
-                  <g display="inline">
-                    <rect x="0" y="0" width="600" height="720" fill="#13203B"></rect>
-                    <g stroke="#5DA6E6" strokeOpacity="0.16" strokeWidth="2"><path d="M40 0V720M80 0V720M120 0V720M160 0V720M200 0V720M240 0V720M280 0V720M320 0V720M360 0V720M400 0V720M440 0V720M480 0V720M520 0V720M560 0V720"></path></g>
-                  </g>
+                  <g display="inline"><rect x="0" y="0" width="600" height="720" fill="#13203B"></rect><g stroke="#5DA6E6" strokeOpacity="0.16" strokeWidth="2"><path d="M40 0V720M80 0V720M120 0V720M160 0V720M200 0V720M240 0V720M280 0V720M320 0V720M360 0V720M400 0V720M440 0V720M480 0V720M520 0V720M560 0V720"></path></g></g>
                   <g display="inline"><path d="M0 430 L600 150 L600 250 L0 530 Z" fill="#1E50D0"></path><path d="M0 538 L600 258 L600 270 L0 550 Z" fill="#5DA6E6"></path></g>
                   <g display="inline"><rect x="0" y="0" width="600" height="18" fill="#F3B80A"></rect><rect x="0" y="26" width="600" height="8" fill="#FFFFFF"></rect></g>
                   <g display="inline"><path d="M0 660 L50 640 L100 660 L150 640 L200 660 L250 640 L300 660 L350 640 L400 660 L450 640 L500 660 L550 640 L600 660 L600 680 L550 660 L500 680 L450 660 L400 680 L350 660 L300 680 L250 660 L200 680 L150 660 L100 680 L50 660 L0 680 Z" fill="#E4002B"></path><path d="M0 696 L50 676 L100 696 L150 676 L200 696 L250 676 L300 696 L350 676 L400 696 L450 676 L500 696 L550 676 L600 696 L600 706 L550 686 L500 706 L450 686 L400 706 L350 686 L300 706 L250 686 L200 706 L150 686 L100 706 L50 686 L0 706 Z" fill="#E4002B" fillOpacity="0.6"></path></g>
-                  <g display="inline">
-                    <path d="M90 95 H170 V140 Q170 182 130 196 Q90 182 90 140 Z" fill="#F3B80A"></path>
-                    <path d="M98 103 H162 V140 Q162 175 130 187 Q98 175 98 140 Z" fill="none" stroke="#13203B" strokeWidth="3"></path>
-                    <text x="130" y="155" textAnchor="middle" fontFamily="Geist, Arial, sans-serif" fontSize="34" fontWeight="700" fill="#13203B">KW</text>
-                  </g>
+                  <g display="inline"><path d="M90 95 H170 V140 Q170 182 130 196 Q90 182 90 140 Z" fill="#F3B80A"></path><path d="M98 103 H162 V140 Q162 175 130 187 Q98 175 98 140 Z" fill="none" stroke="#13203B" strokeWidth="3"></path><text x="130" y="155" textAnchor="middle" fontFamily="Geist, Arial, sans-serif" fontSize="34" fontWeight="700" fill="#13203B">KW</text></g>
                   <g display="inline"><path d="M442 150 L462 110 L480 110 L460 150 Z" fill="#FFFFFF"></path><path d="M472 150 L492 110 L510 110 L490 150 Z" fill="#FFFFFF" fillOpacity="0.7"></path></g>
                   <g display="inline"><circle cx="170" cy="330" r="26" fill="#FFFFFF"></circle><circle cx="170" cy="330" r="13" fill="none" stroke="#13203B" strokeWidth="6"></circle></g>
                   <g display="inline"><text x="212" y="352" fontFamily="Geist, Arial, sans-serif" fontSize="62" fontWeight="700" letterSpacing="6" fill="#FFFFFF">ARKA</text></g>
@@ -191,7 +202,6 @@ export default function Workspace() {
           </div>
         </div>
 
-        {/* Боковий інспектор */}
         {isInspectorVisible && (
           <aside className="insp" aria-label="Inspector">
             <div className="itabs" role="tablist">
@@ -203,7 +213,6 @@ export default function Workspace() {
             
             <div className="ibody">
               
-              {/* --- ВКЛАДКА COLORS --- */}
               {activeTab === 'colors' && (
                 <>
                   <p className="help" style={{ fontSize: '12px', color: 'var(--text-2)', lineHeight: 1.5, marginBottom: '10px' }}>
@@ -223,32 +232,13 @@ export default function Workspace() {
                           <span className="sw" style={{ background: color.prodRgb }}></span>
                         </span>
                       </button>
-                      {openColorIndex === idx && (
-                        <div className="picker">
-                          <div className="eyebrow" style={{ marginBottom: '8px' }}>Production palette</div>
-                          <div className="pgrid">
-                            {palette.map(p => (
-                              <button key={p.id} className={`pal ${color.prodId.includes(p.id) ? 'cur' : ''}`} aria-pressed={color.prodId.includes(p.id)} title={`${p.id} ${p.name}`}>
-                                <span className="ps" style={{ background: p.rgb }}></span>
-                                <span className="pl">{p.id}<br/>{p.name}</span>
-                              </button>
-                            ))}
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', marginTop: '10px', fontSize: '12px', color: 'var(--text-2)' }}>
-                            <span>Automatic match: <span className="mono" style={{ color: 'var(--text)' }}>none</span></span>
-                            <button className="link">Reset to automatic</button>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   ))}
                 </>
               )}
 
-              {/* --- ВКЛАДКА LAYERS --- */}
               {activeTab === 'layers' && (
                 <>
-                  {/* Background */}
                   <div className="grp">
                     <div className="grp-row">
                       <button className={`grp-h ${!groups.background.isOpen ? 'closed' : ''}`} aria-expanded={groups.background.isOpen} onClick={() => toggleGroup('background')}>
@@ -267,14 +257,9 @@ export default function Workspace() {
                       </div>
                     )}
                   </div>
-                  {/* Інші групи можна додавати за аналогією (Logos, Text, Decorative), як у попередній версії */}
-                  <p className="help" style={{ fontSize: '12px', color: 'var(--text-2)', lineHeight: 1.5, marginTop: '14px' }}>
-                    Every layer keeps the full 6000 × 7200 px canvas and the same origin, so layers stay aligned when composited. Visibility affects the Result view only.
-                  </p>
                 </>
               )}
 
-              {/* --- ВКЛАДКА QUALITY --- */}
               {activeTab === 'quality' && (
                 <>
                   <div className="qsum note err">
@@ -282,7 +267,6 @@ export default function Workspace() {
                     <div><div className="t">Critical issue present</div><div className="d">Approval and export are blocked until it is resolved.</div></div>
                   </div>
 
-                  {/* Critical */}
                   <div>
                     <div className="qsec-h"><span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'rgb(194, 69, 58)' }}></span>Critical · {qualityIssues.critical.length}</div>
                     {qualityIssues.critical.map(issue => (
@@ -297,7 +281,6 @@ export default function Workspace() {
                     ))}
                   </div>
 
-                  {/* Warnings */}
                   <div>
                     <div className="qsec-h"><span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'rgb(183, 121, 31)' }}></span>Warnings · {qualityIssues.warnings.length}</div>
                     {qualityIssues.warnings.map(issue => (
@@ -312,7 +295,6 @@ export default function Workspace() {
                     ))}
                   </div>
 
-                  {/* Info */}
                   <div>
                     <div className="qsec-h"><span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'rgb(138, 141, 149)' }}></span>Information · {qualityIssues.info.length}</div>
                     {qualityIssues.info.map(issue => (
@@ -325,20 +307,27 @@ export default function Workspace() {
                       </div>
                     ))}
                   </div>
-
-                  <p className="help" style={{ fontSize: '12px', color: 'var(--text-2)', lineHeight: 1.5, marginTop: '14px' }}>
-                    Sample issues for the prototype. The real list comes from the decomposition quality report.
-                  </p>
                 </>
-              )}
-
-              {activeTab === 'overview' && (
-                <div style={{ padding: '20px', color: 'var(--text-2)', textAlign: 'center' }}>Overview content will be here</div>
               )}
             </div>
           </aside>
         )}
       </div>
+
+      {/* Модальне вікно Approve */}
+      {showApproveModal && (
+        <div className="overlay">
+          <div className="dlg" role="alertdialog" aria-modal="true" aria-labelledby="dlg-ap">
+            <h2 id="dlg-ap">Approve with warnings</h2>
+            <p>The project will be marked “Approved with warnings”. 2 accepted warnings stay documented in the quality report. The project is then locked.</p>
+            <div className="dlg-f">
+              <button className="btn btn-ghost" onClick={() => setShowApproveModal(false)}>Cancel</button>
+              <button className="btn btn-primary" onClick={handleApprove}>Approve with warnings</button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

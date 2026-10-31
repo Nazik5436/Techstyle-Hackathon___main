@@ -1,38 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import Header from '../components/layout/Header';
 import { Link, useNavigate } from 'react-router-dom';
+import { ProjectContext } from '../context/ProjectContext';
 
 export default function NewProject() {
   const navigate = useNavigate();
-  const [projectName, setProjectName] = useState('Odesa Sharks — Third Kit'); // Для зручності тестування
-  const [uploadState, setUploadState] = useState('initial'); // 'initial', 'selected', 'uploading', 'error'
-  const [simulatedOutcome, setSimulatedOutcome] = useState('ok'); // З прототипу
+  const { addProject } = useContext(ProjectContext);
+  const [projectName, setProjectName] = useState('Odesa Sharks — Third Kit');
+  const [uploadState, setUploadState] = useState('initial');
+  const [simulatedOutcome, setSimulatedOutcome] = useState('ok');
 
-  // Імітація вибору файлу
   const handleFileSelect = (e) => {
     if (e.target.files && e.target.files.length > 0) {
       setUploadState('selected');
     }
   };
 
-  // Видалення файлу
   const handleRemoveFile = () => {
     setUploadState('initial');
   };
 
-  // Початок завантаження
   const handleUploadStart = () => {
     if (uploadState !== 'selected' || !projectName.trim()) return;
     
     setUploadState('uploading');
 
-    // Імітація запиту до сервера (затримка 2 секунди)
     setTimeout(() => {
       if (simulatedOutcome === 'ok') {
-        // Успіх -> переходимо на екран обробки. (В реальності тут був би ID створеного проєкту)
-        navigate('/projects/new-123/processing'); 
+        const newId = Date.now().toString();
+        
+        addProject({
+          id: newId,
+          name: projectName,
+          file: 'uploaded_design.png',
+          created: 'Just now',
+          modified: 'Just now',
+          status: 'Processing',
+          colors: ['#17181C', '#3157D5']
+        });
+
+        navigate(`/projects/${newId}/processing`); 
       } else {
-        // Помилка
         setUploadState('error');
       }
     }, 2000);
@@ -90,7 +98,6 @@ export default function NewProject() {
                 <div className="prev">
                   <span className="plabel">Source · not modified</span>
                   <div className="art">
-                    {/* SVG з прототипу */}
                     <svg viewBox="0 0 600 720" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Sample sportswear front panel design" style={{ display: 'block', width: '100%', height: '100%' }}>
                       <g display="inline">
                         <rect x="0" y="0" width="600" height="720" fill="#13203B"></rect>
@@ -115,7 +122,6 @@ export default function NewProject() {
                   </div>
                 </div>
                 
-                {/* Метадані файлу */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', padding: '4px 0px 0px' }}>
                   <dl className="kv" style={{ gridTemplateColumns: 'auto auto auto auto', columnGap: '12px', flex: '1 1 0%', fontSize: '12px' }}>
                     <dt>File</dt><dd className="mono">sharks-third_flat.png</dd>
@@ -171,7 +177,6 @@ export default function NewProject() {
               </div>
             </div>
 
-            {/* Блок з кнопкою та станами помилки/завантаження */}
             <div style={{ paddingTop: '18px', borderTop: '1px solid var(--line)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               
               {uploadState === 'error' && (
@@ -208,7 +213,6 @@ export default function NewProject() {
               <p className="help">Nothing is saved until the upload succeeds and the project is created.</p>
             </div>
 
-            {/* Блок імітації бекенду */}
             <div className="proto">
               <span className="tag">Prototype · simulated backend</span>
               <label className="sel" style={{ flex: '1 1 0%', minWidth: '160px' }}>
